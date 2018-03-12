@@ -1,4 +1,9 @@
-//var contentHTML;
+showdown.setOption('simplifiedAutoLink', true);
+showdown.setOption('tables', true);
+showdown.setOption('emoji', true);
+showdown.setOption('openLinksInNewWindow', true);
+showdown.setOption('disableForced4SpacesIndentedSublists', true);
+//showdown.setOption('metadata', true);
 
 Vue.component('app-note', {
 
@@ -12,22 +17,32 @@ Vue.component('app-note', {
   },
 
   template: `
-  <div class="note" v-if="active">
-    <div v-on:dblclick="edit()" v-html="contentHTML" v-if="!editing"></div>
-    <textarea v-if="editing" v-on:dblclick="save()" v-model="editContent">{{content}}</textarea>
+  <div class="note" v-if="active" v-on:dblclick="editAndSave()">
+    <div>
+      <div class="notecontent" v-html="contentHTML" v-if="!editing"></div>
+      <textarea ref="editor" class="editor" v-if="editing" v-model="editContent">{{content}}</textarea>
+    </div>
   </div>`,
 
   created: function() {
   },
 
   methods: {
-    edit: function() {
-      this.editing = true;
-    },
-    save: function() {
-      this.editing = false;
-      this.$emit('saveNotes', {index: this.index, id: this.id, content: this.editContent});
-    }    
+    editAndSave: function() {
+      // Switch between editor and view
+      this.editing = !this.editing;
+
+      // Focus editor textarea
+      if(this.editing) {
+        this.$nextTick(() => {
+          this.$refs.editor.focus()
+        });
+      }
+
+      // If we're no longer editing - means save
+      if(!this.editing)
+        this.$emit('saveNotes', {index: this.index, id: this.id, content: this.editContent});
+    },  
   },
 
   computed: {

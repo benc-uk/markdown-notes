@@ -6,12 +6,13 @@ new Vue({
   el: '#app',
 
   template: `
-  <div>
+  <div id="appcontainer">
     <div id="notetabs" unselectable="on" onselectstart="return false;" >
-      <div v-for="(note, index) in notes" @dblclick="rename(index)" v-bind:class="{ activeTab: index==activeNote }" @click="select(index)">{{note.name}}</div>
+      <div v-for="(note, index) in notes" @dblclick="rename(index)" v-bind:class="{ activeTab: index==activeNote }" @click="select(index)">
+      <i class="fa fa-book"></i> {{note.name}}
+      </div>
+      <div id="addButton" @click="addNote()"><i class="far fa-file-alt"></i></div>
     </div>
-
-    <div id="addButton" @click="addNote()"><i class="far fa-file-alt"></i></div>
 
     <app-note :active="index==activeNote" v-for="(note, index) in notes" v-bind="note" :index="index" :key="note.id" @saveNotes="save($event)">
     </app-note>

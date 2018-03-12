@@ -1,70 +1,117 @@
 * {
   font-family: 'Nunito', Arial, Helvetica, sans-serif;
-  font-size: 103%;
 }
 
+html, body {
+  font-size: 1.1em;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+#appcontainer {
+  display: flex;
+  flex-direction: column;
+  height: 99.9%;
+}
 
 #notetabs {
   display: inline-block;
   background-color: #ddd;
+  display: flex;
+  flex-shrink: 0;
 }
 
 #notetabs div {
-  display: inline-block;
   padding: 12px;
   margin: 0;
   cursor: pointer;
   font-size: 24px;
   color: #777;
+  flex: 1 1 auto;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 #addButton {
-  display: inline-block;
   font-size: 28px;
   margin-left: 10px;
   cursor: pointer;
-  color: white;
+  color:white !important;
+  text-align: center;
   background-color: #2f9b1b;
   padding: 6px 12px 6px 12px;
-  border-radius: 5px;
+  align-self: flex-end;
+  width: 40px;
+  flex: 0 1 auto !important;
 }
 
 .activeTab {
   color: #111 !important;
   font-weight: bold;
   background-color: #bbb;
-  /*box-shadow: inset 0 0 15px rgba(0,0,0, 0.2);*/
+}
+
+.editor {
+  width: 100%;
+  padding: 15px;
+  height: 90vh;
+  flex-grow: 1;
+  background-color: #1f1f1f;
+  color: #ddd;
+  font-family: 'Consolas', 'Courier New', Courier, monospace;
+  font-size: 17px;
 }
 
 .note {
   border: 2px solid #bbb;
-  padding: 10px;
+  padding: 0px;
   margin: 0px;
+  height: 99%;
+  overflow: auto
 }
 
-.note textarea {
-  width: 100%;
-  height: 200px;
-  background-color: #252525;
-  color: #ddd;
-  font-family: 'Consolas', 'Courier New', Courier, monospace;
-  font-size: 16px;
+.notecontent {
+  padding: 15px;
 }
 
-pre {
+.note pre {
   background-color: #ddd;
   padding: 15px;
 }
 
-code {
+.note code {
   font-family: 'Consolas', 'Courier New', Courier, monospace;
 }
 
-p code {
+.note p code {
   padding: 2px;
   background-color: #ddd;
 }
 
-img {
+.note img {
   max-width: 100%;
+}
+
+.note table {
+  border-collapse: collapse;
+}
+
+.note td {
+  border: 2px solid #bbb;
+  padding: 5px;
+}
+
+.note th {
+  border: 2px solid #bbb;
+  padding: 5px;
+  background-color: #ddd;
+}
+
+.note blockquote {
+  padding: 15px;
+  border-radius: 8px;
+  background-color: #ddd;
 }
