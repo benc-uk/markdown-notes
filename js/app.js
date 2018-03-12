@@ -44,7 +44,7 @@ new Vue({
     addNote: function() {
       let newName = prompt("New note name", "New Note"); 
       if(newName.trim().length == 0) return;
-      this.notes.push({ id: guid(), name: newName, content: "Change me" });
+      this.notes.push({ id: guid(), name: newName, content: "*Blank note*" });
       localStorage.setItem(NOTE_DB, JSON.stringify(this.notes));
     },
 
