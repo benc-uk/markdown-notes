@@ -1,4 +1,10 @@
 const NOTE_DB = `__notes__data`;
+showdown.setOption('simplifiedAutoLink', true);
+showdown.setOption('tables', true);
+showdown.setOption('emoji', true);
+showdown.setOption('openLinksInNewWindow', true);
+showdown.setOption('disableForced4SpacesIndentedSublists', true);
+showdown.setOption('metadata', true);
 
 // create a root instance
 new Vue({
@@ -44,8 +50,9 @@ new Vue({
     addNote: function() {
       let newName = prompt("New note name", "New Note"); 
       if(newName.trim().length == 0) return;
-      this.notes.push({ id: guid(), name: newName, content: "*Blank note*" });
+      this.notes.push({ id: guid(), name: newName, content: "" });
       localStorage.setItem(NOTE_DB, JSON.stringify(this.notes));
+      this.activeNote = this.notes.length - 1; 
     },
 
     rename: function(i) {

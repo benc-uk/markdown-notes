@@ -1,9 +1,4 @@
-showdown.setOption('simplifiedAutoLink', true);
-showdown.setOption('tables', true);
-showdown.setOption('emoji', true);
-showdown.setOption('openLinksInNewWindow', true);
-showdown.setOption('disableForced4SpacesIndentedSublists', true);
-//showdown.setOption('metadata', true);
+
 
 Vue.component('app-note', {
 
@@ -47,7 +42,9 @@ Vue.component('app-note', {
 
   computed: {
     contentHTML: function () {
-      return new showdown.Converter().makeHtml(this.editContent);      
+      let markdown = this.editContent;
+      if(this.editContent.length == 0) markdown = "*Double click here to start editing your note*"
+      return new showdown.Converter().makeHtml(markdown);
     }
   }  
 })
