@@ -77,6 +77,27 @@ html, body {
   padding: 15px;
 }
 
+.notetools {
+  background-color: #2f9b1b;
+  position: absolute;
+  padding: 10px 15px 10px 15px;
+  right: 30px;
+  top: 70px;
+  height: 37px;
+  float: right;
+  color: white;
+  font-size: 28px;
+  border-radius: 8px;
+}
+
+.notetools img {
+  fill: #175a0b;
+  color: #175a0b;
+  cursor: pointer;
+  width: 38px;
+  height: 38px;
+}
+
 .note pre {
   background-color: #ddd;
   padding: 15px;
