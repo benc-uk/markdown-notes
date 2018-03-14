@@ -19,18 +19,18 @@ Vue.component('app-note', {
   },
 
   template: `
-  <div class="note" v-if="active" v-on:dblclick="editAndSave()">
+  <div class="note" v-if="active">
     <div>
 
-      <div class="notetools" v-if="!editing">
-        <img src="img/icons/edit.svg" @click="edit()"/>&nbsp;
-        <img src="img/icons/download.svg" @click="download()"/>&nbsp;
-        <img src="img/icons/trash-alt.svg" @click="remove()"/>
-      </div>
+      <app-toolbar v-if="!editing" v-bind:buttons="['edit', 'download', 'trash']" 
+        @editEvent="edit()" 
+        @trashEvent="trash()"
+        @downloadEvent="download()">
+      </app-toolbar>
 
-      <div class="notetools" v-if="editing">
-        <img src="img/icons/save.svg" @click="save()"/>
-      </div>
+      <app-toolbar v-else v-bind:buttons="['save']" 
+        @saveEvent="save()" style="background-color: blue">
+      </app-toolbar>
 
       <div class="notecontent" v-html="contentHTML" v-if="!editing"></div>
 
@@ -42,6 +42,8 @@ Vue.component('app-note', {
   },
 
   methods: {
+    foo: function() {console.log('foooo')},
+
     edit: function() {
       // Switch between editor and view
       this.editing = true;
@@ -61,7 +63,8 @@ Vue.component('app-note', {
       this.$emit('saveNote', {index: this.index, id: this.id, content: this.editContent, icon: this.editIcon, name: this.editName});
     },
 
-    remove: function() {
+    trash: function() {
+      // Pass event up to app, with note index
       this.$emit('deleteNote', this.index);
     }
   },
