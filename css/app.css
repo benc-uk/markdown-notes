@@ -50,6 +50,11 @@ html, body {
   min-width: 35px;
 }
 
+.main-button img {
+  position: relative;
+  transform: translateY(10%);
+}
+
 .main-button:hover {
   transition: background-color 0.4s;
   background-color: #217412;
@@ -61,7 +66,7 @@ html, body {
   background-color: #bbb;
 }
 
-#menu {
+.menu {
   z-index: 50;
   top: 57px;
   left: 65px;
@@ -70,7 +75,7 @@ html, body {
   padding: 10px;
 }
 
-#menu div {
+.menu div {
   display: inline;
   margin-left: 20px;
   text-decoration: none;
@@ -83,8 +88,13 @@ html, body {
   color: white;
 }
 
-#menu div:hover {
+.menu div:hover {
   background-color: #217412;
+}
+
+.menu li {
+  list-style: none;
+  cursor: pointer;
 }
 
 .editor {
@@ -149,6 +159,9 @@ html, body {
 
 .red {
   background-color: #bd2929
+}
+.grey-bbb {
+  background-color: #bbb
 }
 
 /* ---- Animations ------- */

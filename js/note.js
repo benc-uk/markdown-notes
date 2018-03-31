@@ -8,7 +8,6 @@ showdown.setOption('metadata', true);
 Vue.component('app-note', {
 
   props: {
-    index:   { type: Number  },
     id:      { type: String  },
     name:    { type: String  },
     content: { type: String  },
@@ -31,9 +30,10 @@ Vue.component('app-note', {
     <div>
       <!-- view mode toolbar -->
       <transition name="fade">
-        <app-toolbar v-if="!editing && toolbarShown" v-bind:buttons="['edit', 'download']" 
+        <app-toolbar v-if="!editing && toolbarShown" v-bind:buttons="['edit', 'download', 'close']" 
           @editEvent="edit()" 
-          @downloadEvent="download()">
+          @downloadEvent="download()"
+          @closeEvent="close()">
         </app-toolbar>
       </transition>
 
@@ -54,8 +54,6 @@ Vue.component('app-note', {
 
   methods: {
     handleMouse: function(evt) {
-      //console.dir(window);
-      // && (evt.toElement.clientWidth - evt.offsetX < 200)
       if(evt.clientY < 180  && (window.outerWidth - evt.clientX < 250)) this.toolbarShown = true;
       else this.toolbarShown = false;
     },
@@ -76,7 +74,7 @@ Vue.component('app-note', {
       // Force a call to contentHTML to refresh things that are parsed from the metadata
       let dump = this.contentHTML;
       // Send event up to app to update things and save the data
-      this.$emit('saveNote', {index: this.index, id: this.id, content: this.editContent, icon: this.editIcon, name: this.editName});
+      this.$emit('saveNote', {id: this.id, content: this.editContent, icon: this.editIcon, name: this.editName});
     },
 
     trash: function() {
@@ -87,7 +85,7 @@ Vue.component('app-note', {
 
       this.$dialog.confirm(confirm, {okText: 'Yeah, sure', cancelText: 'No way!', backdropClose: true})
         .then(() => {
-          this.$emit('deleteNote', this.index);
+          this.$emit('deleteNote', this.id);
         })
         .catch(() => {})
     },
@@ -95,6 +93,10 @@ Vue.component('app-note', {
     download: function() {
       var blob = new Blob([this.editContent], {type : 'text/markdown; charset=UTF-8'});
       saveAs(blob, `${this.editName}.md`);
+    },
+
+    close: function() {
+      this.$emit('closeNote', this.id);
     }
   },
 

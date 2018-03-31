@@ -10,30 +10,43 @@ new Vue({
   el: '#app',
 
   template: `
-  <div id="appcontainer" @click="hideMenu()">
+  <div id="appcontainer" @click.stop="closeMenus()">
     <div id="notetabs">
-      <div class="main-button" @click="addNote()"><i class="far fa-file-alt"></i></div>
-      <div class="main-button" @click.stop="toggleMenu()"><i class="fa fa-chevron-circle-down"></i></div>
-      <div v-for="(note, index) in notes" v-bind:class="{ activetab: index==settings.activeNote }" @click="select(index)">
-        <i :class="'fa fa-'+note.icon"></i> {{note.name}}
-      </div>
+    <div class="main-button" @click="addNote()"><img src="img/icons/file.svg" height="24px"/></div>
+    <div class="main-button" v-if="closedNotes > 0" @click.stop="toggleFileMenu()"><img src="img/icons/folder.svg" height="24px"/></div>
+    <div class="main-button" @click.stop="toggleSettingMenu()"><img src="img/icons/cog.svg" height="24px"/></div>
+    <div v-for="(note, index) in notes" v-if="note.open" v-bind:class="{ activetab: note.id == settings.activeNote }" @click="select(note.id)">
+      <i :class="'fa fa-'+note.icon"></i> {{note.name}} 
+    </div>
     </div>
 
     <transition name="slideopen">
-      <div v-if="menuOpen" id="menu">
+      <div v-if="settingMenuOpen" class="menu">
         <div @click="exportAll()"><i class="fa fa-download"></i> Export All Notes</div>
         <div @click="importNotes()"><i class="fa fa-upload"></i> Import Notes</div>
       </div>
     </transition>
 
-    <div v-if="notes.length == 0" class="note">
-      <div class="notecontent">You have no notes.</br>Please click the 'new note' icon to create your first note</div>
-    </div>
+    <transition name="slideopen">
+      <div v-if="fileMenuOpen" class="menu">
+        <ul>
+          <li v-for="(note, index) in notes" v-if="!note.open" @click="open(note.id)"><i :class="'fa fa-'+note.icon"></i>  {{ note.name }}</li>
+        </ul>
+      </div>
+    </transition>    
 
-    <app-note ref="notes" :active="index == settings.activeNote" v-for="(note, index) in notes" 
+    <div v-if="Object.keys(this.notes).length == 0" class="note grey-bbb">
+      <div class="notecontent"><h2>You have no notes.</h2>Click the <i class="fa fa-file-alt"></i> icon to create your first note</div>
+    </div>
+    <div v-if="Object.keys(this.notes).length > 0 && Object.keys(this.notes).length == closedNotes" class="note grey-bbb">
+      <div class="notecontent"><h2>You have closed all your notes.</h2></br>Click the <i class="fa fa-folder-open"></i> icon to open a closed note</div>
+    </div>
+    
+    <app-note ref="notes" :active="note.id == settings.activeNote && note.open" v-for="(note, index) in notes" 
       v-bind="note" :index="index" :key="note.id" 
       @saveNote="save($event)"
-      @deleteNote="remove($event)">
+      @deleteNote="remove($event)"
+      @closeNote="close($event)">
     </app-note>
 
     <input type="file" ref="fileInput" accept=".json" style="display:none" v-on:change="importNotesFile($event)">
@@ -42,9 +55,11 @@ new Vue({
 
   data: function() {
     return {
-      notes: [],
-      menuOpen: false,
-      settings: {},
+      notes: {},
+      settingMenuOpen: false,
+      fileMenuOpen: false,
+      settings: { activeNote: '' },
+      closedNotes: 0
     }
   },
 
@@ -52,60 +67,88 @@ new Vue({
     // Load notes from storage
     try {
       let tempNotes = JSON.parse(window.localStorage.getItem(NOTE_DB));
-      if(tempNotes && tempNotes.length > 0)
-        this.notes.push(... tempNotes);
-
-      // Load settings from storage, or create defaults
-      let tempSettings = JSON.parse(window.localStorage.getItem(NOTE_SETTINGS));
-      if(tempSettings)
-        this.settings = tempSettings;  
+      if(tempNotes)
+        this.notes = tempNotes;
       else
-        this.settings = { activeNote: 0 }
+        this.notes = {};
     } catch(err) {
-
+      this.notes = {};
     }
+
+    for(var noteid in this.notes) {
+      if(!this.notes[noteid].open) this.closedNotes++;
+    }
+
+    // Load settings from storage, or create defaults
+    let tempSettings = JSON.parse(window.localStorage.getItem(NOTE_SETTINGS));
+    if(tempSettings)
+      this.settings = tempSettings;  
+    else
+      this.settings = { activeNote: '' }
   },
 
   methods: {
     save: function(updatedNote) {
-      this.notes[updatedNote.index].content = updatedNote.content;
-      this.notes[updatedNote.index].icon = updatedNote.icon;
-      this.notes[updatedNote.index].name = updatedNote.name;
-      this.notes.splice(updatedNote.index, 1, this.notes[updatedNote.index])
-
+      var note = this.notes[updatedNote.id];
+      note.content = updatedNote.content;
+      note.icon = updatedNote.icon;
+      note.name = updatedNote.name;
       window.localStorage.setItem(NOTE_DB, JSON.stringify(this.notes));
     },
 
-    select: function(index) {
-      this.settings.activeNote = index;
+    select: function(id) {
+      this.settings.activeNote = id;
       this.saveSettings();
     },
 
     addNote: function() {
       var newId = makeId(6);
-      this.notes.push({ 
+      Vue.set(this.notes, newId, { 
         id: newId, 
-        name: `New Note ${this.notes.length+1}`, 
-        content: `---\nname: New Note ${this.notes.length+1}\nicon: file-alt\n---\n\n`, 
-        icon: "file-alt"
+        name: `New Note ${Object.keys(this.notes).length+1}`, 
+        content: `---\nname: New Note ${Object.keys(this.notes).length+1}\nicon: file-alt\n---\n\n`, 
+        icon: "file-alt",
+        open: true
       });
+      this.settings.activeNote = newId;
+
       // All this hassle to call edit() on the new note component
-      /*Vue.nextTick(() => {
+      Vue.nextTick(() => {
         let newNoteComp = this.$refs.notes.find(n => {
-          return n.id == newId;
+          return n._props.id == newId;
         });
         newNoteComp.edit();
-      })*/
+      })
       
       window.localStorage.setItem(NOTE_DB, JSON.stringify(this.notes));
-      this.settings.activeNote = this.notes.length - 1; 
       this.saveSettings();
     },
 
-    remove: function(index) {
-      this.notes.splice(index, 1);   
-      if(this.settings.activeNote > this.notes.length - 1) this.settings.activeNote = this.notes.length - 1;
+    remove: function(id) {
+      Vue.delete(this.notes, id);
+
+      this.settings.activeNote = this.findFirstOpenNote();//Object.keys(this.notes)[0];
+      this.findFirstOpenNote();
       window.localStorage.setItem(NOTE_DB, JSON.stringify(this.notes));
+      this.saveSettings();
+    },
+
+    close: function(id) {
+      this.notes[id].open = false;
+      this.closedNotes++;
+
+
+      this.settings.activeNote = this.findFirstOpenNote();//Object.keys(this.notes)[0];
+      window.localStorage.setItem(NOTE_DB, JSON.stringify(this.notes)); 
+      this.saveSettings();
+    },
+
+    open: function(id) {
+      this.notes[id].open = true;
+      this.closedNotes--;
+
+      this.settings.activeNote = id;
+      window.localStorage.setItem(NOTE_DB, JSON.stringify(this.notes)); 
       this.saveSettings();
     },
 
@@ -114,13 +157,19 @@ new Vue({
       saveAs(blob, `all-notes.json`);
     },
 
-    toggleMenu: function() {
-      this.menuOpen = !this.menuOpen;
-      console.log(this.menuOpen);
+    toggleSettingMenu: function() {
+      this.fileMenuOpen = false;
+      this.settingMenuOpen = !this.settingMenuOpen;
     },
 
-    hideMenu: function() {
-      this.menuOpen = false;
+    toggleFileMenu: function() {
+      this.settingMenuOpen = false;
+      this.fileMenuOpen = !this.fileMenuOpen;
+    },
+
+    closeMenus: function() {
+      this.fileMenuOpen = false;
+      this.settingMenuOpen = false;
     },
 
     importNotes: function() {
@@ -132,19 +181,6 @@ new Vue({
       if(file) {
 				var reader = new FileReader();
 				reader.onload = function(e) {
-          try {
-            var test = JSON.parse(reader.result);
-            if(test.length > 0) {
-              if(!test[0].id || !test[0].name || !test[0].content || !test[0].icon) { 
-                console.log('File isn\'t valid exported notes'); 
-                return; 
-              }
-            }
-          } catch(e) {
-            console.log('File is not JSON!');
-            return;
-          } 
-
           window.localStorage.setItem(NOTE_DB, reader.result);
           window.location.reload();
 				}
@@ -154,6 +190,12 @@ new Vue({
 
     saveSettings: function() {
       window.localStorage.setItem(NOTE_SETTINGS, JSON.stringify(this.settings));
+    },
+
+    findFirstOpenNote: function() {
+      for(var noteid in this.notes) {
+        if(this.notes[noteid].open) return noteid
+      }
     }
   }
 })
