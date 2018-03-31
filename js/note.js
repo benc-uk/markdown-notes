@@ -7,42 +7,58 @@ showdown.setOption('metadata', true);
 
 Vue.component('app-note', {
 
-  props: ['index', 'id', 'name', 'content', 'active', 'icon'],
+  props: {
+    index:   { type: Number  },
+    id:      { type: String  },
+    name:    { type: String  },
+    content: { type: String  },
+    active:  { type: Boolean },
+    icon:    { type: String  }            
+  },
 
   data: function() {
     return {
       editing: false,
       editContent: this.content,
       editIcon: this.icon,
-      editName: this.name
+      editName: this.name,
+      toolbarShown: false
     }
   },
 
   template: `
-  <div class="note" v-if="active">
+  <div class="note" v-if="active" @mousemove="handleMouse($event)" @mouseleave="toolbarShown = false">
     <div>
+      <!-- view mode toolbar -->
+      <transition name="fade">
+        <app-toolbar v-if="!editing && toolbarShown" v-bind:buttons="['edit', 'download']" 
+          @editEvent="edit()" 
+          @downloadEvent="download()">
+        </app-toolbar>
+      </transition>
 
-      <app-toolbar v-if="!editing" v-bind:buttons="['edit', 'download', 'trash']" 
-        @editEvent="edit()" 
-        @trashEvent="trash()"
-        @downloadEvent="download()">
-      </app-toolbar>
+      <!-- edit mode toolbar -->
+      <transition name="fade">
+        <app-toolbar v-if="editing && toolbarShown" v-bind:buttons="['save', 'trash']" 
+          @saveEvent="save()" @trashEvent="trash()" class='red'>
+        </app-toolbar>
+      </transition>
 
-      <app-toolbar v-else v-bind:buttons="['save']" 
-        @saveEvent="save()" style="background-color: blue">
-      </app-toolbar>
+      <!-- view note content -->
+      <div v-if="!editing" class="notecontent" v-html="contentHTML"></div>
 
-      <div class="notecontent" v-html="contentHTML" v-if="!editing"></div>
-
-      <textarea ref="editor" class="editor" v-if="editing" v-model="editContent">{{content}}</textarea>
+      <!-- edit note content -->
+      <textarea v-else ref="editor" class="editor" v-model="editContent" @keydown.ctrl.83.prevent="save()">{{content}}</textarea>
     </div>
   </div>`,
 
-  created: function() {
-  },
-
   methods: {
-    foo: function() {console.log('foooo')},
+    handleMouse: function(evt) {
+      //console.dir(window);
+      // && (evt.toElement.clientWidth - evt.offsetX < 200)
+      if(evt.clientY < 180  && (window.outerWidth - evt.clientX < 250)) this.toolbarShown = true;
+      else this.toolbarShown = false;
+    },
 
     edit: function() {
       // Switch between editor and view
@@ -57,15 +73,28 @@ Vue.component('app-note', {
     save: function() {
       // Switch between editor and view
       this.editing = false;      
-      // force a call to contentHTML to refresh things that are parsed from the metadata
+      // Force a call to contentHTML to refresh things that are parsed from the metadata
       let dump = this.contentHTML;
-      // send event up to app to update things and save the data
+      // Send event up to app to update things and save the data
       this.$emit('saveNote', {index: this.index, id: this.id, content: this.editContent, icon: this.editIcon, name: this.editName});
     },
 
     trash: function() {
-      // Pass event up to app, with note index
-      this.$emit('deleteNote', this.index);
+      let confirm = {
+        title: 'Delete Note',
+        body: 'Are you sure you want to delete this note?'
+      }
+
+      this.$dialog.confirm(confirm, {okText: 'Yeah, sure', cancelText: 'No way!', backdropClose: true})
+        .then(() => {
+          this.$emit('deleteNote', this.index);
+        })
+        .catch(() => {})
+    },
+
+    download: function() {
+      var blob = new Blob([this.editContent], {type : 'text/markdown; charset=UTF-8'});
+      saveAs(blob, `${this.editName}.md`);
     }
   },
 
@@ -75,9 +104,13 @@ Vue.component('app-note', {
       if(this.editContent.length == 0) markdown = "*Double click here to start editing your note*"
       let conv = new showdown.Converter();
       let html = conv.makeHtml(markdown);
-      let metadata = conv.getMetadata(); 
-      this.editIcon = metadata.icon || "file-alt"
-      this.editName = metadata.name || "New Note"
+      let metadata = conv.getMetadata(true); 
+
+      // Manually parse the metadata into YAML as showdown is rubbish
+      var yaml = jsyaml.load(metadata);
+      
+      this.editIcon = yaml.icon || "file-alt"
+      this.editName = yaml.name || "New Note"
 
       return html;
     }

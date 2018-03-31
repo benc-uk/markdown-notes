@@ -19,9 +19,7 @@ Vue.component('app-toolbar', {
   
   template: `
   <div class="toolbar">
-    <div v-for="button of buttons" @click="buttonClick(button)">
-      <img v-bind:src="imgPath+button+imgExtension"/>
-    </div>
+    <div v-for="button of buttons" @click="buttonClick(button)"><img v-bind:src="imgPath+button+imgExtension"/></div>
   </div>`,
 
   methods: {

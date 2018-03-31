@@ -1,0 +1,40 @@
+/* --------- Note markdown ------ */
+
+.note pre {
+  background-color: #ddd;
+  padding: 15px;
+}
+
+.note code {
+  font-family: 'Consolas', 'Courier New', Courier, monospace;
+}
+
+.note p code {
+  padding: 2px;
+  background-color: #ddd;
+}
+
+.note img {
+  max-width: 100%;
+}
+
+.note table {
+  border-collapse: collapse;
+}
+
+.note td {
+  border: 2px solid #bbb;
+  padding: 5px;
+}
+
+.note th {
+  border: 2px solid #bbb;
+  padding: 5px;
+  background-color: #ddd;
+}
+
+.note blockquote {
+  padding: 15px;
+  border-radius: 8px;
+  background-color: #ddd;
+}
