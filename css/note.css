@@ -7,6 +7,8 @@
 
 .note code {
   font-family: 'Consolas', 'Courier New', Courier, monospace;
+  overflow-wrap: break-word;
+  white-space: pre-wrap; 
 }
 
 .note p code {
