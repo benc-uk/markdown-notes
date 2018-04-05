@@ -142,8 +142,8 @@ html, body {
   cursor: pointer;
   width: 30px;
   height: 30px;
-  padding: 5px;
-  margin: 3px;
+  padding: 10px;
+  margin: 5px;
   border-radius: 5px;
   transition: background-color 0.35s;
 }
